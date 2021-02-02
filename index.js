@@ -61,7 +61,7 @@ async function sendResults() {
   player1 = game[0]
   player2 = game[1]
   await io.to(player1.playerid).emit( 'playGame', ` ${player2.Name} chose ${player2.guess} - You ${ player1.result === 'win' ? ' Win :-)' : player1.result == 'loss' ? ' Lose :-(' : ' Draw :-|' }\n ------ Leaderboard ------ \n ${board.join(' ')} \n-------------------------\n ` ) 
-  await io.to(player2.playerid).emit( 'playGame', ` ${player1.Name} chose ${player1.guess} - You ${player2.result  === 'win' ? ' Win :-)' : player1.result == 'loss' ? ' Lose :-(' : ' Draw :-|' }\n ------ Leaderboard ------ \n ${board} \n-------------------------\n` ) 
+  await io.to(player2.playerid).emit( 'playGame', ` ${player1.Name} chose ${player1.guess} - You ${player2.result  === 'win' ? ' Win :-)' : player1.result == 'loss' ? ' Lose :-(' : ' Draw :-|' }\n ------ Leaderboard ------ \n ${board.join(' ')} \n-------------------------\n` ) 
   game = []
 }
 
