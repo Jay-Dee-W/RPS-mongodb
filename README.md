@@ -1,61 +1,101 @@
-# Simple Console Chat
-Your goal is to write code in `client.js` to implement a console-based chat feature using 
-[socket.io](https://socket.io/)
+# Rock Paper Scissors Game
+1. Create an account on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) and follow the documentation to 
+set up a new database which will be used to store your game data.
 
-The client should do the following:
+2. Modify the rock-paper-scissors server so that it keeps a record of each game stored in the database. eg. the game result could be structured like this:
+    ```
+    {
+        player_1: 'Mark',
+        player_2: 'Fred',
+        player_1_guess: 'Rock',
+        player_2_guess: 'Paper',
+        timestamp: 1611724447821
+    }
+    ```
+    Notes: 
 
-1. Prompt for the user's name, then attempt to connect to the server 
-
-2. When the client has connected to the server:
-    - Print 'Successfully connected to server' and prompt the user for a message with a `>` character
-
-3. When the user types a message:
-    - Print 'Sending message: "\[message text\]"' then prompt the user for another message with a `>` character
-    - Use the `emit` function to send a message to the server with event name of 'simple chat message' 
-    and a string message argument of the form '\[user name\] says "\[message text\]"' 
-
-4. When the client receives a message from the server:
-    - Print the message to the console, then again prompt the user for a message with a `>` character
+    - there will be many such objects in the database - one for each game that was played.  
     
-5. When the client loses the connection to the server (eg. if the server goes down):
-    - Print 'Connection lost...' and prompt the user for a message with a `>` character
-    - (Note that socket.io will automatically attempt to reconnect.  
-    If reconnection is successful then the action in step 2 should be performed)     
+    - the `timestamp` field is a number representing time when the game was played.  You an generate 
+      this number in javascript like this: `Date.now()`
+      
+    - Tip: After you tell mongodb to store the object, be careful to `await` on the result to ensure the data has been written successfully
+      
+3. Keep a leaderboard of each player as an object in the database like this:
+    ```
+    {
+        Mark : { win: 5, loss: 2, draw: 3 },
+        Fred : { win: 6, loss: 3, draw: 1 },
+        Kimiko : { win: 2, loss: 1, draw: 1 }
+    }
+    ```
+    - There will only be one such object in the database which is updated with new values for each player
+
+4. Send the leaderboard to each player after each game, then display it on screen.  Each win counts as 1 points, each loss is -1 point, and each draw is 0 points.  If two players have the same score, the one with fewest games played is ranked higher.
 
 ### Example
 
-**Note: A walkthough video for this example is [available on YouTube](https://youtu.be/62H16BgQSgg) or [our website](https://mclarencollege.com/player.html?videoUrl=https%3A%2F%2Fmclaren-college-lecture-recordings.s3.us-east-2.amazonaws.com%2Fin-class_videos%2FJavascript%2BPre-Course%2Fconsole-chat-example.mp4)**
+Here is the console output and input for each of 3 clients:
+##### Client 1: Mark chooses Rock
+```
+What is your name? Mark
+Successfully connected to server
+(R)ock, (P)aper or (S)cissors? R
+You chose rock
+Waiting for response
+Fred chose paper - You Lose :(
+------ Leaderboard ------
+Fred: 4 points (7 wins, 3 losses, 1 draws)
+Mark: 2 points (5 wins, 3 losses, 3 draws)
+Kimiko: 1 points (2 wins, 1 losses, 0 draws)
+-------------------------
 
-Here is the console output and input for each of 3 clients showing 3 messages.
+(R)ock, (P)aper or (S)cissors? 
+```
 
-Time |Client 1 | Client 2 | Client 3
----|-------- | -------- | --------
-1 |`What's your name ? Mark`|`What's your name ? Mohammad`|`What's your name ? Kimiko`
-2 | `Successfully connected to server`| `Successfully connected to server`| `Successfully connected to server` 
-3 | `>`| `>`| `>`
-4 | *(User 1 types a message)*
-5 | `> My favourite movie is Aliens` 
-6 | *(Client 1 sends message to server)*
-7 | `Sending message: "My favourite movie is Aliens"`
-8 | | *(Client 2 receives message)* | *(Client 3 receives message)* 
-9 | |`> Mark says "My favourite movie is Aliens"`|`> Mark says "My favourite movie is Aliens"`
-10| | *(User 2 types a message)*
-11| | `> I prefer Terminator 2`
-12| | `Sending message: "I prefer Terminator 2"`
-13| *(Client 1 receives message)* | | *(Client 3 receives message)* 
-14|`> Mohammad says "I prefer Terminator 2"`| |`> Mohammad says "I prefer Terminator 2"`
-15| *(Server goes down)* 
-16|`> Connection lost...`| `> Connection lost...` |`> Connection lost...`
-17| | | *(User 3 types a message)*
-18| | | `> What about Back To The Future?`
-19| | | `Sending message: "What about Back To The Future?"`
-20| *(Server comes up)* 
-21| `> Successfully connected to server`| `> Successfully connected to server`| `> Successfully connected to server` 
-22| *(Client 1 receives message)* | *(Client 2 receives message)* 
-23|`> Kimiko says "What about Back To The Future?"`| `> Kimiko says "What about Back To The Future?"`
+##### Client 2: Fred chooses Paper, then plays again and chooses Scissors
+```
+What is your name? Fred
+Successfully connected to server
+(R)ock, (P)aper or (S)cissors? P
+You chose paper
+Waiting for response
+Mark chose rock - You Win :)
+------ Leaderboard ------
+Fred: 4 points (7 wins, 3 losses, 1 draws)
+Mark: 2 points (5 wins, 3 losses, 3 draws)
+Kimiko: 1 points (2 wins, 1 losses, 0 draws)
+-------------------------
 
-### Tips
-- You will need to use the [socket.io client API](https://socket.io/docs/v3/client-api/index.html).  You can get an idea of how to code the client with [this getting started page](https://socket.io/get-started/chat/) (although keep in mind it is designed for a browser interface, not a command line interface)
-- Use the `rl.question` function to prompt the user and read in the user's response
-- Note that after we print a message to the console we usually then prompt the user to enter a message - consider having one function for this behaviour
+(R)ock, (P)aper or (S)cissors? S
+You chose scissors
+Waiting for response
+Abe chose scissors - Draw
+------ Leaderboard ------
+Fred: 4 points (7 wins, 3 losses, 2 draws)
+Mark: 2 points (5 wins, 3 losses, 3 draws)
+Kimiko: 1 points (2 wins, 1 losses, 0 draws)
+Abe: 0 points (0 wins, 0 losses, 1 draws)
+-------------------------
+
+(R)ock, (P)aper or (S)cissors? 
+```
+
+##### Client 3: Abe chooses Scissors
+```
+What is your name? Abe
+Successfully connected to server
+(R)ock, (P)aper or (S)cissors? S
+You chose scissors
+Waiting for response
+Fred chose scissors - Draw
+------ Leaderboard ------
+Fred: 4 points (7 wins, 3 losses, 2 draws)
+Mark: 2 points (5 wins, 3 losses, 3 draws)
+Kimiko: 1 points (2 wins, 1 losses, 0 draws)
+Abe: 0 points (0 wins, 0 losses, 1 draws)
+-------------------------
+
+(R)ock, (P)aper or (S)cissors? 
+```
 
